@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Audio</title>
+</head>
+
+<body>
+
+	<button onClick="start()">
+		Start
+	</button>
+
+
+
+	<script>
+
+		function start() {
+			const AudioContext = window.AudioContext || window.webkitAudioContext;
+
+			const audioCtx = new AudioContext();
+			const analyser = audioCtx.createAnalyser();
+
+			analyser.fftSize = 256
+			const bufferLength = analyser.frequencyBinCount;
+			const dataArray = new Uint8Array(bufferLength);
+
+			async function fetchSource() {
+				if (navigator.mediaDevices) {
+					const stream = await navigator.mediaDevices.getUserMedia({ "audio": true })
+
+					if (stream) processAudio(stream)
+
+				}
+			}
+
+			function processAudio(stream) {
+				const source = audioCtx.createMediaStreamSource(stream)
+				source.connect(analyser)
+
+			}
+
+			setInterval(() => {
+				analyser.getByteTimeDomainData(dataArray);
+				console.log(bufferLength, dataArray, "Ok")
+				for (let i = 0; i < bufferLength; i++) {
+					const v = dataArray[i] / 128.0;
+					console.log(v, "V")
+				}
+			}, 1000)
+
+			fetchSource()
+		}
+
+
+	</script>
+</body>
+
+</html>
